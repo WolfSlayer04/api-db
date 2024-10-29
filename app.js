@@ -27,7 +27,7 @@ const swaggerOptions = {
     },
     servers: [
       {
-        url: `http://localhost:${PORT}`,
+        url: `https://api-db-gag2.onrender.com`,
       },
     ],
   },
