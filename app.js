@@ -2,7 +2,6 @@ const express = require('express');
 const connectDB = require('./db'); // Conexión a la base de datos
 const User = require('./models/User'); // Modelo de Usuarios2
 const Nurse = require('./models/Nurse'); // Modelo de Enfermeros
-const Patient = require('./models/Patient'); // Modelo de Pacientes
 const swaggerJsDoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
 const cors = require('cors'); // Middleware CORS
@@ -22,13 +21,13 @@ const swaggerOptions = {
   swaggerDefinition: {
     openapi: '3.0.0',
     info: {
-      title: 'API de Usuarios, Enfermeros y Pacientes en MongoDB',
+      title: 'API de Usuarios y Enfermeros MongoDB',
       version: '1.0.0',
-      description: 'API para manejar los usuarios, enfermeros y pacientes en MongoDB',
+      description: 'API para manejar los usuarios y enfermeros en MongoDB',
     },
     servers: [
       {
-        url: `http://localhost:${PORT}`,
+        url: `https://api-db-gag2.onrender.com`,
       },
     ],
   },
@@ -66,6 +65,35 @@ app.get('/users', async (req, res) => {
 
 /**
  * @swagger
+ * /users/{id}:
+ *   get:
+ *     summary: Obtiene un usuario por ID
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: ID del usuario
+ *     responses:
+ *       200:
+ *         description: Un usuario
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ */
+app.get('/users/:id', async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    user ? res.json(user) : res.status(404).json({ message: 'Usuario no encontrado' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error al obtener el usuario' });
+  }
+});
+
+/**
+ * @swagger
  * /users:
  *   post:
  *     summary: Crea un nuevo usuario
@@ -76,16 +104,12 @@ app.get('/users', async (req, res) => {
  *           schema:
  *             type: object
  *             properties:
- *               name:
+ *               nombre:
  *                 type: string
- *               user_name:
+ *               email:
  *                 type: string
- *               password:
- *                 type: string
- *               foto:
- *                 type: string
- *               verificado:
- *                 type: string
+ *               edad:
+ *                 type: number
  *     responses:
  *       201:
  *         description: Usuario creado
@@ -119,16 +143,12 @@ app.post('/users', async (req, res) => {
  *           schema:
  *             type: object
  *             properties:
- *               name:
+ *               nombre:
  *                 type: string
- *               user_name:
+ *               email:
  *                 type: string
- *               password:
- *                 type: string
- *               foto:
- *                 type: string
- *               verificado:
- *                 type: string
+ *               edad:
+ *                 type: number
  *     responses:
  *       200:
  *         description: Usuario actualizado
@@ -195,6 +215,35 @@ app.get('/nurses', async (req, res) => {
 
 /**
  * @swagger
+ * /nurses/{id}:
+ *   get:
+ *     summary: Obtiene un enfermero por ID
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: ID del enfermero
+ *     responses:
+ *       200:
+ *         description: Un enfermero
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ */
+app.get('/nurses/:id', async (req, res) => {
+  try {
+    const nurse = await Nurse.findById(req.params.id);
+    nurse ? res.json(nurse) : res.status(404).json({ message: 'Enfermero no encontrado' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error al obtener el enfermero' });
+  }
+});
+
+/**
+ * @swagger
  * /nurses:
  *   post:
  *     summary: Crea un nuevo enfermero
@@ -205,18 +254,14 @@ app.get('/nurses', async (req, res) => {
  *           schema:
  *             type: object
  *             properties:
- *               name:
+ *               nombre:
  *                 type: string
- *               fecha_nacimiento:
+ *               email:
  *                 type: string
- *               genero:
+ *               especialidad:
  *                 type: string
- *               movilidad:
- *                 type: string
- *               descripcion:
- *                 type: string
- *               usuario_id:
- *                 type: string
+ *               experiencia:
+ *                 type: number
  *     responses:
  *       201:
  *         description: Enfermero creado
@@ -250,18 +295,14 @@ app.post('/nurses', async (req, res) => {
  *           schema:
  *             type: object
  *             properties:
- *               name:
+ *               nombre:
  *                 type: string
- *               fecha_nacimiento:
+ *               email:
  *                 type: string
- *               genero:
+ *               especialidad:
  *                 type: string
- *               movilidad:
- *                 type: string
- *               descripcion:
- *                 type: string
- *               usuario_id:
- *                 type: string
+ *               experiencia:
+ *                 type: number
  *     responses:
  *       200:
  *         description: Enfermero actualizado
@@ -300,289 +341,7 @@ app.delete('/nurses/:id', async (req, res) => {
   }
 });
 
-/* --------------------- CRUD Pacientes --------------------- */
-
-/**
- * @swagger
- * /patients:
- *   get:
- *     summary: Obtiene todos los pacientes
- *     responses:
- *       200:
- *         description: Lista de pacientes
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 type: object
- */
-app.get('/patients', async (req, res) => {
-  try {
-    const patients = await Patient.find();
-    res.json(patients);
-  } catch (error) {
-    res.status(500).json({ message: 'Error al obtener los pacientes' });
-  }
-});
-
-/**
- * @swagger
- * /patients:
- *   post:
- *     summary: Crea un nuevo paciente
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               name:
- *                 type: string
- *               fecha_nacimiento:
- *                 type: string
- *               genero:
- *                 type: string
- *               movilidad:
- *                 type: string
- *               descripcion:
- *                 type: string
- *               usuario_id:
- *                 type: string
- *     responses:
- *       201:
- *         description: Paciente creado
- */
-app.post('/patients', async (req, res) => {
-  try {
-    const newPatient = new Patient(req.body);
-    await newPatient.save();
-    res.status(201).json(newPatient);
-  } catch (error) {
-    res.status(400).json({ message: 'Error al crear el paciente' });
-  }
-});
-
-/**
- * @swagger
- * /patients/{id}:
- *   put:
- *     summary: Actualiza un paciente por ID
- *     parameters:
- *       - in: path
- *         name: id
- *         schema:
- *           type: string
- *         required: true
- *         description: ID del paciente
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               name:
- *                 type: string
- *               fecha_nacimiento:
- *                 type: string
- *               genero:
- *                 type: string
- *               movilidad:
- *                 type: string
- *               descripcion:
- *                 type: string
- *               usuario_id:
- *                 type: string
- *     responses:
- *       200:
- *         description: Paciente actualizado
- */
-app.put('/patients/:id', async (req, res) => {
-  try {
-    const updatedPatient = await Patient.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    res.json(updatedPatient);
-  } catch (error) {
-    res.status(400).json({ message: 'Error al actualizar el paciente' });
-  }
-});
-
-/**
- * @swagger
- * /patients/{id}:
- *   delete:
- *     summary: Elimina un paciente por ID
- *     parameters:
- *       - in: path
- *         name: id
- *         schema:
- *           type: string
- *         required: true
- *         description: ID del paciente
- *     responses:
- *       204:
- *         description: Paciente eliminado
- */
-app.delete('/patients/:id', async (req, res) => {
-  try {
-    await Patient.findByIdAndDelete(req.params.id);
-    res.status(204).end();
-  } catch (error) {
-    res.status(500).json({ message: 'Error al eliminar el paciente' });
-  }
-});
-/**
- * @swagger
- * /register:
- *   post:
- *     summary: Registra un nuevo usuario
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               name:
- *                 type: string
- *               user_name:
- *                 type: string
- *               password:
- *                 type: string
- *               foto:
- *                 type: string
- *               verificado:
- *                 type: string
- *     responses:
- *       201:
- *         description: Usuario registrado
- */
-app.post('/register', async (req, res) => {
-    try {
-      const { name, user_name, password, foto, verificado } = req.body;
-  
-      // Aquí puedes agregar lógica para encriptar la contraseña si es necesario
-      const newUser = new User({ name, user_name, password, foto, verificado });
-      await newUser.save();
-      res.status(201).json(newUser);
-    } catch (error) {
-      res.status(400).json({ message: 'Error al registrar el usuario' });
-    }
-  });
-
-/**
- * @swagger
- * /login:
- *   post:
- *     summary: Inicia sesión de un usuario
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               user_name:
- *                 type: string
- *               password:
- *                 type: string
- *     responses:
- *       200:
- *         description: Usuario autenticado
- *       401:
- *         description: Credenciales incorrectas
- *       500:
- *         description: Error en el servidor
- */
-app.post('/login', async (req, res) => {
-    const { user_name, password } = req.body;
-
-    try {
-        // Busca el usuario por nombre de usuario y contraseña
-        const user = await User.findOne({ user_name, password });
-
-        // Si no se encuentra el usuario, responder con 401
-        if (!user) {
-            return res.status(401).json({ message: 'Credenciales incorrectas' });
-        }
-
-        // Si se encuentra el usuario, responde con 200
-        res.status(200).json({ message: 'Usuario autenticado' });
-    } catch (error) {
-        // Manejo de errores del servidor
-        res.status(500).json({ message: 'Error en el servidor' });
-    }
-});
-
-/**
- * @swagger
- * /nurses:
- *   get:
- *     summary: Busca enfermeros por especialidad
- *     parameters:
- *       - in: query
- *         name: specialty
- *         schema:
- *           type: string
- *         required: true
- *         description: Especialidad del enfermero
- *     responses:
- *       200:
- *         description: Lista de enfermeros encontrados
- *       404:
- *         description: No se encontraron enfermeros
- *       500:
- *         description: Error en el servidor
- */
-app.get('/nurses', async (req, res) => {
-    const { specialty } = req.query;
-
-    try {
-        // Busca enfermeros por especialidad
-        const nurses = await Nurse.find({ specialty });
-
-        // Si no se encuentran enfermeros, responde con 404
-        if (nurses.length === 0) {
-            return res.status(404).json({ message: 'No se encontraron enfermeros' });
-        }
-
-        // Responde con la lista de enfermeros encontrados
-        res.status(200).json(nurses);
-    } catch (error) {
-        // Manejo de errores del servidor
-        res.status(500).json({ message: 'Error en el servidor' });
-    }
-});
-
-/**
- * @swagger
- * /nurses/all:
- *   get:
- *     summary: Obtiene la lista de todos los enfermeros
- *     responses:
- *       200:
- *         description: Lista de todos los enfermeros
- *       500:
- *         description: Error en el servidor
- */
-app.get('/nurses/all', async (req, res) => {
-    try {
-        // Obtiene todos los enfermeros
-        const nurses = await Nurse.find();
-
-        // Responde con la lista de enfermeros
-        res.status(200).json(nurses);
-    } catch (error) {
-        // Manejo de errores del servidor
-        res.status(500).json({ message: 'Error en el servidor' });
-    }
-});
-
-
-
-
-// Inicia el servidor
 app.listen(PORT, () => {
-  console.log(`Servidor en ejecución en http://localhost:${PORT}/api-docs`);
+  console.log(`Servidor corriendo en http://localhost:${PORT}`);
+  console.log(`Documentación Swagger disponible en http://localhost:${PORT}/api-docs`);
 });
